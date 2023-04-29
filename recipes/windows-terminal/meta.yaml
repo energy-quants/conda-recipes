@@ -1,0 +1,52 @@
+{% set name = "windows-terminal" %}
+{% set version = "1.16.1026" %}
+
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  - url: https://github.com/microsoft/terminal/releases/download/v{{ version }}1.0/Microsoft.WindowsTerminal_Win10_{{ version }}1.0_8wekyb3d8bbwe.msixbundle
+    sha256: ba6fc6854e713094b4009cf2021e8b4887cff737ab4b9c4f9390462dd2708298
+  - url: https://raw.githubusercontent.com/microsoft/terminal/v{{ version }}1.0/LICENSE
+    sha256: 5d177f23ecfeb0ea8e050b6a5a16355e1ae9a0b286436ca8f83ed08b3795be6b
+  - url: https://raw.githubusercontent.com/microsoft/terminal/v{{ version }}1.0/NOTICE.md
+    sha256: 460127a8d31a3083e1673926e1439e001c1662aa36e0b48fa64482dce162b8b1
+
+build:
+  skip: true  # [not win]
+  error_overlinking: false
+  number: 0
+  script: |
+    7za e .\Microsoft.WindowsTerminal_Win10_{{ version }}1.0_8wekyb3d8bbwe.msixbundle CascadiaPackage_{{ version }}1.0_x64.msix
+    if %ERRORLEVEL% neq 0 exit 1
+    7za x -oterminal .\CascadiaPackage_{{ version }}1.0_x64.msix
+    if %ERRORLEVEL% neq 0 exit 1
+    xcopy terminal "%PREFIX%\windows-terminal" /E /I /F /B /Y
+    if %ERRORLEVEL% neq 0 exit 1
+    tree /F "%PREFIX%\windows-terminal"
+    echo F | xcopy %RECIPE_DIR%\wt.cmd %PREFIX%\Scripts\wt.cmd /F /Y
+    if %ERRORLEVEL% neq 0 exit 1
+
+requirements:
+  build:
+    - 7za
+
+test:
+  commands:
+    - where wt
+    - if not exist %PREFIX%\\windows-terminal\\wt.exe exit 1
+
+about:
+  home: https://github.com/microsoft/terminal
+  summary: 'The new Windows Terminal and the original Windows console host, all in the same place!'
+  license: MIT
+  license_family: MIT
+  license_file:
+    - LICENSE
+    - NOTICE.md
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
