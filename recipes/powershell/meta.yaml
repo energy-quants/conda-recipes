@@ -1,0 +1,41 @@
+{% set name = "powershell" %}
+{% set version = "7.3.6" %}
+
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  - url: https://github.com/PowerShell/PowerShell/releases/download/v{{ version }}/PowerShell-{{ version }}-win-x64.zip
+    folder: powershell
+    sha256: fcbd1699beaed9e42d8d335c60f17c746055c4f05d4d658d2f54b88f99bd01ba
+
+build:
+  skip: true  # [not win]
+  error_overlinking: false
+  number: 0
+  script: |
+    xcopy powershell "%PREFIX%\powershell" /E /I /F /B /Y
+    if %ERRORLEVEL% neq 0 exit 1
+    tree /F "%PREFIX%\powershell"
+    echo F | xcopy %RECIPE_DIR%\pwsh.cmd %PREFIX%\Scripts\pwsh.cmd /F /Y
+    if %ERRORLEVEL% neq 0 exit 1
+
+test:
+  commands:
+    - where powershell
+    - if not exist %PREFIX%\\powershell\\pwsh.exe exit 1
+
+about:
+  home: https://github.com/PowerShell/PowerShell
+  summary: 'PowerShell for every system!'
+  license: MIT
+  license_family: MIT
+  license_file:
+    - powershell/LICENSE.txt
+    - powershell/ThirdPartyNotices.txt
+
+extra:
+  recipe-maintainers:
+    - dhirschfeld
